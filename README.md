@@ -1,8 +1,9 @@
 # sf_automation_documentation
 
 ### Notes 18-Oct-2025
-- Check FlowDefinitionView object and types of return - Can I return descriptions?
+- Check FlowDefinitionView object and types of return - Can I return descriptions? - Potentially possible with Metadata API
 - Use pandas to organize the return from the query
+- Possibly, I will need to need to build the package and retrieve the flow XMLs
 - Check how to extract the actual FLOW metadata
 - Research how send them to the LLM
 
