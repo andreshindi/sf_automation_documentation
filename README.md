@@ -1,5 +1,11 @@
 # sf_automation_documentation
 
+### Notes 18-Oct-2025
+- Check FlowDefinitionView object and types of return - Can I return descriptions?
+- Use pandas to organize the return from the query
+- Check how to extract the actual FLOW metadata
+- Research how send them to the LLM
+
 ## Problem Statement
 Before designing a flow, the Salesforce administrator must know which flows are connected to the objects they’re working with, so they can avoid conflicting logic.
 
