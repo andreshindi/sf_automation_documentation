@@ -19,19 +19,25 @@ def sf_connection():
         #description = sf.describe()
         #for obj in description["sobjects"]:
         #    print(obj["label"])
-        flows = sf.query("SELECT id, IsActive, Label, ProcessType, ManageableState , TriggerObjectOrEventId, TriggerObjectOrEventLabel, TriggerType FROM FlowDefinitionView WHERE isActive = TRUE")
+        flows = sf.query("SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description FROM FlowDefinitionView WHERE isActive = TRUE")
+        print(flows.keys())
+
+        flow_df = pd.DataFrame(flows["records"])
+        flow_df = flow_df.drop(columns=["attributes"])
+        ##this line below will make sure that long descriptions with multines will stay in the same column when converting to CSV
+        flow_df["Description"] = flow_df["Description"].str.replace(r'[\r\n]+', ' ', regex=True)
+        flow_df.to_csv('outputs/flow_list.csv',sep=';',index=False)
+        print(flow_df)
         #for f in flows["records"]:
         #    print(f["Label"]," : ", f["ProcessType"])
-        create_dataset(flows)
+        #create_dataset(flows)
+
+        #OrderedDict([('attributes', OrderedDict([('type', 'FlowDefinitionView'), ('url', '/services/data/v59.0/sobjects/FlowDefinitionView/300gK00000ClxPFQAZ')])), ('Id', '3ddgK00000ClxPFQAZ'), ('IsActive', True), ('Label', '[Auto] Generate API Transaction Code Record'), ('TriggerType', None)])
 
 
     #catch any error here and display        
     except Exception as e:
         print(f"Failure: {e}")
-
-def (list):
-    print(list)
-
 
 if __name__ == "__main__":
     sf = sf_connection()

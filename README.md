@@ -1,8 +1,12 @@
 # sf_automation_documentation
 
+## Outstanding issues
+[Solved]- When I query records and convert them to a dataframe, some lines are being counted as two lines - example: [Scheduled] Activity - Send Reminder Email is counting as two lines due to the long description
+
+
 ### Notes 18-Oct-2025
 - Check FlowDefinitionView object and types of return - Can I return descriptions? - Potentially possible with Metadata API
-- Use pandas to organize the return from the query
+[Done]- Use pandas to organize the return from the query
 - Possibly, I will need to need to build the package and retrieve the flow XMLs
 - Check how to extract the actual FLOW metadata
 - Research how send them to the LLM
