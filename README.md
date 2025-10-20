@@ -2,6 +2,7 @@
 
 ### Notes 20-Oct-2025
 - Before proceeding: Organize code blocks - 
+- add a check of the outputs/download folder and create them if required
 - Check how to extract the actual FLOW metadata
 - Research how send them to the LLM
 
