@@ -1,10 +1,12 @@
 # sf_automation_documentation
 
 ### Notes 20-Oct-2025
-- Check FlowDefinitionView object and types of return - Can I return descriptions? - Potentially possible with Metadata API
-- Possibly, I will need to need to build the package and retrieve the flow XMLs
+- Before proceeding: Organize code blocks - 
 - Check how to extract the actual FLOW metadata
 - Research how send them to the LLM
+
+### Progress
+- Now we're able to: initiate connection, query active flows, put them in a csv (break) request a mtd retrieval, extract the zip, move the flow metadata to the flow folder
 
 ## Problem Statement
 Before designing a flow, the Salesforce administrator must know which flows are connected to the objects they’re working with, so they can avoid conflicting logic.

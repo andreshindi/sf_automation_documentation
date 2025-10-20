@@ -6,6 +6,9 @@ import time
 from base64 import b64decode
 from zipfile import ZipFile
 from io import BytesIO
+import base64
+import zipfile
+import shutil ##using to move folders
 
 #load .env file
 load_dotenv()
@@ -54,9 +57,48 @@ def sf_connection():
         
         
         if status == 'Succeeded':
+            print(f"Deu Certo Porra - async ID: {async_id} - status: {status}")
+            # Get the result element
+            result_element = mdapi.retrieve_retrieve_result(async_id, "True")
+            print(result_element)
+    
+            # Extract the result ID (needed to retrieve the zip)
+            zip_file = result_element.find('mt:zipFile', mdapi._XML_NAMESPACES)
+            #print(f"zip file - result_element.find: {zip_file}")
+            zip_content = zip_file.text
+            #print(f"zip content - zip_content = zip_file.text: {zip_content}")
+            zip_bytes = base64.b64decode(zip_content)
+            #create folder if it doesnt exist
+            output_folder = "downloads/"
+
+
+            os.makedirs(output_folder, exist_ok=True)
+            zip_path = os.path.join(output_folder, f"{async_id}.zip")
+            with open(zip_path, "wb") as f:
+                f.write(zip_bytes)
+
+            #extract zip
+            zip_path = f"{output_folder}{async_id}.zip"
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(output_folder)
+            #print(zip_path)
+
+            #move extracted flow folder to root
+            if os.path.exists("flows/"):
+                shutil.rmtree("flows/")
+            shutil.move("downloads/flows/", "flows/")
+
+            #clear downlaods folder
+            for filename in os.listdir("downloads/"):
+                file_path = os.path.join("downloads/", filename)
+                if os.path.isfile(file_path):   # only delete files
+                    os.remove(file_path)
+
+            
             #from this point, I need to get the result ID to be able to retrieve the package
             #use method mdapi.retrieve_zip probably with the result id - investigaste
-            print("Deu Certo Porra")
+            #state, error_message, messages, zipfile = mdapi.retrieve_zip(async_id)
+            #print(state, error_message, messages)
         else:
             print("Deu Errado, porra")
 
