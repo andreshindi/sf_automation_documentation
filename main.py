@@ -2,6 +2,10 @@ from simple_salesforce import Salesforce
 from dotenv import load_dotenv
 import pandas as pd
 import os
+import time
+from base64 import b64decode
+from zipfile import ZipFile
+from io import BytesIO
 
 #load .env file
 load_dotenv()
@@ -15,29 +19,81 @@ sf_token = os.getenv('SF_TOKEN')
 def sf_connection():
     try:
         sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_token)
-        print("*** You're connected to Salesforce ***")
-        #description = sf.describe()
-        #for obj in description["sobjects"]:
-        #    print(obj["label"])
-        flows = sf.query("SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description FROM FlowDefinitionView WHERE isActive = TRUE")
-        print(flows.keys())
+        print("*** You're connected to Salesforce")
+        print("*** ---")
+        print("*** Querying records from Salesforce")
+        #query_result = sf.query("SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description FROM FlowDefinitionView WHERE isActive = TRUE")
+        
+        #transform result in dataframe and export to CSV (outputs/flow_list.csv)
+        #build_dataframe(query_result)
 
-        flow_df = pd.DataFrame(flows["records"])
-        flow_df = flow_df.drop(columns=["attributes"])
-        ##this line below will make sure that long descriptions with multines will stay in the same column when converting to CSV
-        flow_df["Description"] = flow_df["Description"].str.replace(r'[\r\n]+', ' ', regex=True)
-        flow_df.to_csv('outputs/flow_list.csv',sep=';',index=False)
-        print(flow_df)
-        #for f in flows["records"]:
-        #    print(f["Label"]," : ", f["ProcessType"])
-        #create_dataset(flows)
+        
+        #accessing property to instantiate the metadata class - learn more about lazy instantiation
+        mdapi = sf.mdapi
 
-        #OrderedDict([('attributes', OrderedDict([('type', 'FlowDefinitionView'), ('url', '/services/data/v59.0/sobjects/FlowDefinitionView/300gK00000ClxPFQAZ')])), ('Id', '3ddgK00000ClxPFQAZ'), ('IsActive', True), ('Label', '[Auto] Generate API Transaction Code Record'), ('TriggerType', None)])
+       
+        
+        req = build_unpackage() 
 
+        ##logic to start the retrieve job - generates XML files that will be returned as ZIP
+        print(req)
+        retrieve_result = mdapi.retrieve(
+            "DUMMY_ID_FOR_INITIATION",
+            unpackaged=req, 
+        )
+
+        ##track IDS
+        async_id, status = retrieve_result
+
+        #wait for the job to finalize 
+        while status not in ['Succeeded', 'Failed']:
+            time.sleep(5)
+            check_status = mdapi.check_retrieve_status(async_id)
+            print(check_status[0])
+            status = check_status[0]
+        
+        
+        if status == 'Succeeded':
+            #from this point, I need to get the result ID to be able to retrieve the package
+            #use method mdapi.retrieve_zip probably with the result id - investigaste
+            print("Deu Certo Porra")
+        else:
+            print("Deu Errado, porra")
+
+
+        
+
+
+        
+
+        #test get async metadata
+        #async_id = '09SgK000004D4TJUA0'
+        #zip_result = mdapi.retrieve_zip(async_id)
+        #zip_base64 = zip_result.get('zipFile')
 
     #catch any error here and display        
     except Exception as e:
         print(f"Failure: {e}")
+
+#function top transform query result in dataframe and export to CSV (outputs/flow_list.csv)
+def build_dataframe(query_result):
+    print("*** ---")
+    print("*** Building CSV record with query results")
+    flow_df = pd.DataFrame(query_result["records"])
+    flow_df = flow_df.drop(columns=["attributes"])
+    ##this line below will make sure that long descriptions with multines will stay in the same column when converting to CSV
+    flow_df["Description"] = flow_df["Description"].str.replace(r'[\r\n]+', ' ', regex=True)
+    flow_df.to_csv('outputs/flow_list.csv',sep=';',index=False)
+    print("*** Flows have been exported to outputs/flow_list.csv")
+
+#funtion to build the list of flows that will have the metadata retrieved
+#goal is to use the output file to build this piece of logic
+def build_unpackage():
+    retrieve_request = {
+        'Flow': ['Auto_Refresh_Project_Geographic_Area_List_on_Project'] 
+    }
+    return retrieve_request
+
 
 if __name__ == "__main__":
     sf = sf_connection()
