@@ -1,10 +1,12 @@
 # sf_automation_documentation
 
 ### Notes 20-Oct-2025
-- Before proceeding: Organize code blocks - 
 - add a check of the outputs/download folder and create them if required
-- Check how to extract the actual FLOW metadata
-- Research how send them to the LLM
+- loop flow_list, build the request to retrieve all flows in unpackaged
+- check if can retrieve all flows
+- build the .flow path on flow list
+- use it to send to llm, get the result and add to another column (description)
+- Before proceeding: Organize code blocks - 
 
 ### Progress
 - Now we're able to: initiate connection, query active flows, put them in a csv (break) request a mtd retrieval, extract the zip, move the flow metadata to the flow folder
