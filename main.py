@@ -9,6 +9,7 @@ from io import BytesIO
 import base64
 import zipfile
 import shutil ##using to move folders
+from .request import stream_ollama
 
 #load .env file
 load_dotenv()
@@ -139,4 +140,5 @@ def build_unpackage():
 
 if __name__ == "__main__":
     sf = sf_connection()
+    stream_ollama("llama3.1", "Write a short haiku about AI and nature.")
     print("*** END ***")
