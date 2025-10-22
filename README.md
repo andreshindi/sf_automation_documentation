@@ -25,3 +25,6 @@ pip install -r requirements.txt
 
 ## Improvements (Out of scope for now)
 - UX to allow users to interact with the application
+
+## Findings
+- It's not possible to extract managed package or standard flows metadata - Limitation

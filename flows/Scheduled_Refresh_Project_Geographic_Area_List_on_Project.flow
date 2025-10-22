@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>64.0</apiVersion>
+    <description>This scheduled flow runs daily to check for Project Geographic Areas that need to be concatenated into the parent Project’s lists of countries and cities.</description>
+    <environments>Default</environments>
+    <interviewLabel>[Scheduled] Refresh Project Geographic Area List on Project {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>[Scheduled] Refresh Project Geographic Area List on Project</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Subflow_Refresh_Project_Geographic_Area_List_on_Project</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Project_Geographic_Area_List_Status__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Reprocess</stringValue>
+            </value>
+        </filters>
+        <object>ampi__Project__c</object>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2025-07-26</startDate>
+            <startTime>11:25:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+    <status>Active</status>
+    <subflows>
+        <name>Subflow_Refresh_Project_Geographic_Area_List_on_Project</name>
+        <label>[Subflow] Refresh Project Geographic Area List on Project</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <flowName>Auto_Refresh_Project_Geographic_Area_List_on_Project</flowName>
+        <inputAssignments>
+            <name>var_text_ProjectId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputAssignments>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </subflows>
+    <variables>
+        <name>coll_text_projectId_Already_Processed</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>

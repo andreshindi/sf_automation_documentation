@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>64.0</apiVersion>
+    <description>This flow serves as a trigger for the Project Geographic Area object. It currently evaluates whether the record is new or has been changed, and whether the type is City or Country, in order to execute the logic.</description>
+    <environments>Default</environments>
+    <interviewLabel>[Trigger] Project Geographic Area - After Create/Update {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>[Trigger] Project Geographic Area - After Create/Update</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Update_Related_Project_Record_Needs_Processing</name>
+        <label>Update Related Project Record - Needs Processing</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Project_Geographic_Area_List_Status__c</field>
+            <value>
+                <stringValue>Reprocess</stringValue>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record.ampi__Project__r</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Update_Related_Project_Record_Needs_Processing</targetReference>
+        </connector>
+        <filterFormula>AND(
+  OR(
+    ISNEW(),
+    ISCHANGED({!$Record.ampi__Geographic_Area__c})
+  ),
+  OR(
+    TEXT({!$Record.ampi__Geographic_Area__r.ampi__Type__c})= &quot;Country&quot;,
+   TEXT({!$Record.ampi__Geographic_Area__r.ampi__Type__c}) = &quot;Neighbourhood/Village/City&quot;
+  )
+)</filterFormula>
+        <object>ampi__Project_Geographic_Area__c</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
