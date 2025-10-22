@@ -1,12 +1,10 @@
 # sf_automation_documentation
 
 ### Notes 20-Oct-2025
-- add a check of the outputs/download folder and create them if required
-- loop flow_list, build the request to retrieve all flows in unpackaged
-- check if can retrieve all flows
-- build the .flow path on flow list
-- use it to send to llm, get the result and add to another column (description)
-- Before proceeding: Organize code blocks - 
+- script: fix prompt - use """ to build the prompt
+- From script.py: transfer logic to main.py
+- start organizing the code. Different scripts for different functions
+- Don't use openAI, ollama works fine for this demo - Maybe we need to use docker??
 
 ### Progress
 - Now we're able to: initiate connection, query active flows, put them in a csv (break) request a mtd retrieval, extract the zip, move the flow metadata to the flow folder
@@ -23,8 +21,18 @@ Requirements
 pip install -r requirements.txt
 ```
 
+.env
+````
+# Salesforce credentials 
+
+SF_USERNAME=
+SF_PASSWORD=
+SF_TOKEN=
+```
+
 ## Improvements (Out of scope for now)
 - UX to allow users to interact with the application
 
 ## Findings
 - It's not possible to extract managed package or standard flows metadata - Limitation
+
