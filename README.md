@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ```
 
 .env
-````
+```
 # Salesforce credentials 
 
 SF_USERNAME=
