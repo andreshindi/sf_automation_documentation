@@ -1,5 +1,6 @@
 from simple_salesforce import Salesforce
 from dotenv import load_dotenv
+import os
 import pandas as pd
 import os
 import time
@@ -13,13 +14,11 @@ from ollama import chat
 from ollama import ChatResponse
 
 
-#load .env file
-load_dotenv()
 
-#initialize sf credentias
-sf_username = os.getenv('SF_USERNAME')
-sf_password = os.getenv('SF_PASSWORD')
-sf_token = os.getenv('SF_TOKEN')
+
+
+
+
 
 #function to start SF connection
 def sf_connection():
@@ -28,9 +27,7 @@ def sf_connection():
         print("*** You're connected to Salesforce")
         print("*** ---")
         print("*** Querying records from Salesforce")
-        sf_query = """SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description 
-        FROM FlowDefinitionView 
-        WHERE isActive = TRUE AND (ProcessType = 'AutoLaunchedFlow' OR ProcessType = 'Flow')
+        sf_query = """
         """
         query_result = sf.query(sf_query)
         
@@ -78,7 +75,7 @@ def sf_connection():
             #print(f"zip content - zip_content = zip_file.text: {zip_content}")
             zip_bytes = base64.b64decode(zip_content)
             #create folder if it doesnt exist
-            output_folder = "downloads/"
+            output_folder = "./downloads/"
 
 
             os.makedirs(output_folder, exist_ok=True)
@@ -105,6 +102,28 @@ def sf_connection():
             
             link_flows_df(df)
 
+            df = pd.read_csv('outputs/flow_list.csv', sep=';')
+            df_clean = df.fillna(value='')
+
+            for i, r in df_clean.iterrows():
+                if r['FlowPath']:
+                    print(r['FlowPath'])
+                    with open(r['FlowPath'], 'r', encoding='utf-8') as file:
+                        xml_string = file.read()
+                    #print(xml_string)
+                    prompt = """give a nickname to this salesforce flow metadata, 
+                            do not describe the flow, tell me only the nickname,
+                            your response must contain maximum of two words, 
+                            don't ask for more options ---"""+xml_string
+                    ## from this point, it needs to open the xml data, load into the prompt
+                    chat_response = ollama_call(prompt)
+                    chat_response = chat_response+r['FlowPath']
+                    df.loc[df['FlowPath'] == r['FlowPath'], 'api_response'] = chat_response
+                    #flow_df["Description"] = flow_df["Description"].str.replace(r'[\r\n]+', ' ', regex=True)
+
+            df["api_response"] = df["api_response"].str.replace(r'[\r\n]+', ' ', regex=True)
+            df.to_csv('outputs/flow_final.csv', sep=';', index=False)
+
         else:
             print("Deu Errado, porra")
             print(status)
@@ -117,11 +136,11 @@ def sf_connection():
 
 def link_flows_df(df):
     df['FlowPath'] = None
-    all_files = os.listdir('flows/')
+    all_files = os.listdir('./flows/')
     for f in all_files:
         select_row = df.loc[df['ApiName'] == f.split('.')[0], 'FlowPath'] = 'flows/'+f
-    os.makedirs('outputs/', exist_ok=True)
-    df.to_csv('outputs/flow_list.csv', sep=';')
+    os.makedirs('./outputs/', exist_ok=True)
+    df.to_csv('./outputs/flow_list.csv', sep=';')
     print('*** Flows saved to outputs/flow_list.csv')
    
     
@@ -141,18 +160,150 @@ def build_dataframe(query_result):
 
 #funtion to build the list of flows that will have the metadata retrieved
 #goal is to use the output file to build this piece of logic
+
+
+def ollama_call(prompt):       
+    response: ChatResponse = chat(model='llama3.1:8b', messages=[
+    {'role': 'user', 'content': prompt,},
+    ])
+    print(response['message']['content'])
+    chat_response = response['message']['content']
+    return chat_response
+
+'''New part 
+of the code
+'''
+
+def query_salesforce(query):
+    load_dotenv()
+
+    #get credentials from .env
+    sf_username = os.getenv("SF_USERNAME")
+    sf_password = os.getenv("SF_PASSWORD")
+    sf_token = os.getenv("SF_TOKEN")
+    
+    try:
+        sf = Salesforce(username=sf_username, password=sf_password, security_token=sf_token)
+        print("*** Connected to Salesforce and Querying Records")
+        query_result = sf.query(query)
+        print("*** Records retrieved")
+        return sf, query_result
+    
+    except Exception as e:
+        print(f"*** Salesfoce Error: {e}")
+        quit()
+
+def prepare_dataframe(query_result):
+    print("*** Building CSV record with query results")
+    df = pd.DataFrame(query_result["records"])
+    df = df.drop(columns=["attributes"])
+    df["Description"] = df["Description"].str.replace(r'[\r\n]+', ' ', regex=True)
+    df['flow_path'] = None
+    df['api_response'] = None
+    print("*** Dataframe succesfully built")
+    return df
+
 def build_unpackage(df):
+    """
+    this function is building the request that will be sent
+    #to SF Metadata API to retrieve the XML of the flows
+    """
 
     flows_list = df['ApiName'].tolist()
-
     retrieve_request = {
         'Flow': flows_list
     }
     return retrieve_request
 
+def sf_flows(sf, df):
+    """
+    This function receives the sf connection object and the dataframe. The dataframe is used to build the Metadata API call.
+    The returns are saved to the /flows folder
+    It returns an updated version of the dataframe
+    """
+
+    #accessing property to instantiate the metadata class - learn more about lazy instantiation
+    mdapi = sf.mdapi
+
+    #get the formatted version of the request
+    request = build_unpackage(df)
+
+    print("*** Initiating request to Salesforce")
+    retrieve_request = mdapi.retrieve(
+            "DUMMY_ID_FOR_INITIATION", #not sure why this is required
+            unpackaged=request, 
+        )
+    
+    ##track results - get the ID of the retrieve request and the initial status
+    async_id, status = retrieve_request
+
+    #wait for the job to finalize, check status every 5 seconds
+    while status not in ['Succeeded', 'Failed']:
+        time.sleep(5)
+        check_status = mdapi.check_retrieve_status(async_id)
+        print(f"*** Current Status: {check_status[0]} ") #this return is a tuple! Is there another way to check the status?
+        status = check_status[0]
+    
+    
+    if status == 'Succeeded':
+        print(f"*** Request Succeeded - async ID: {async_id} - status: {status}")
+        
+        # Get the result element - This return is a ZIP file, it will need to be extracted
+        result_element = mdapi.retrieve_retrieve_result(async_id, "True")
+
+        #maybe here I can created another function to keep it clean
+        # Manipulate the zip element to save it to the /downloads folder
+        print("*** Saving flows.zip to /downloads")
+        zip_file = result_element.find('mt:zipFile', mdapi._XML_NAMESPACES)
+        zip_content = zip_file.text
+        zip_bytes = base64.b64decode(zip_content)
+        
+        #create folder if it doesnt exist
+        output_folder = "./downloads/"
+        os.makedirs(output_folder, exist_ok=True)
+        zip_path = os.path.join(output_folder, "flows_metadata.zip")
+        with open(zip_path, "wb") as f:
+                f.write(zip_bytes)
+        print("*** flows.zip saved with success to /downloads")
+
+    
+    else:
+            print("*** Request Job Failed")
+            print(f"*** Results: {retrieve_result}")
+
+
+def main():
+    '''
+    Step 1 - Salesforce connection and query records
+    '''
+    #build the query we want to send to query all the flows
+    query="""SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description 
+        FROM FlowDefinitionView
+        WHERE isActive = TRUE AND (ProcessType = 'AutoLaunchedFlow' OR ProcessType = 'Flow')"""
+
+    #this function connects to SF and queries SF using the query above: it returns the sf object (connection) that I will
+    #use for a metadata call on step 3
+    sf, query_result = query_salesforce(query)
+
+
+    '''
+    Step 2 - Build the dataframe that will be used throughout the script and result in a final file
+    '''
+
+    #Input the results from salesforce query and get a dataframe
+    df = prepare_dataframe(query_result)
+
+    '''
+    Step 3 - Query Salesforce flow medatada from Salesforce, save files in a flow folder and update the dataframe
+    '''
+
+    #Input the results from salesforce query and get a dataframe
+    sf_flows(sf, df)
+
+
 
 if __name__ == "__main__":
-    sf = sf_connection()
+    main()
     
     #print(xml_string)
     

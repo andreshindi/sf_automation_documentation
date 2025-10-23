@@ -2,7 +2,6 @@
 
 ### Notes 20-Oct-2025
 - script: fix prompt - use """ to build the prompt
-- From script.py: transfer logic to main.py
 - start organizing the code. Different scripts for different functions
 - Don't use openAI, ollama works fine for this demo - Maybe we need to use docker??
 
