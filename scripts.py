@@ -3,13 +3,7 @@ import pandas as pd
 from ollama import chat
 from ollama import ChatResponse
 
-def ollama_call(prompt):       
-    response: ChatResponse = chat(model='llama3.1:8b', messages=[
-    {'role': 'user', 'content': prompt,},
-    ])
-    print(response['message']['content'])
-    chat_response = response['message']['content']
-    return chat_response
+
 
 df = pd.read_csv('outputs/flow_list.csv', sep=';')
 df_clean = df.fillna(value='')
