@@ -1,8 +1,8 @@
 # sf_automation_documentation
 
 ### Notes 20-Oct-2025
-- script: fix prompt - use """ to build the prompt
-- start organizing the code. Different scripts for different functions
+- start organizing the code. 
+- ZIP manipulation and unpackaging can be done in another function
 - Don't use openAI, ollama works fine for this demo - Maybe we need to use docker??
 
 ### Progress
