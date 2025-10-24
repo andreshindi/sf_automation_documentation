@@ -21,6 +21,16 @@ SF_PASSWORD=
 SF_TOKEN=
 ```
 
+### Folder Structure
+```
+project/
+├── scripts/
+│   └── main.py
+├── requirements.txt
+├── .env
+└── README.md
+```
+
 ### Ollama
 You need to install and initialize Ollama 
 ```
@@ -28,6 +38,26 @@ You need to install and initialize Ollama
 ollama run llama3.1:8b
 
 ```
+
+### Set inputs
+Open ./scripts/main.py 
+
+Under main() function
+Change SF query (if necessary)
+```
+ query="""SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description 
+        FROM FlowDefinitionView
+        WHERE isActive = TRUE AND (ProcessType = 'AutoLaunchedFlow' OR ProcessType = 'Flow')"""
+```
+
+Change prompt_context (if necessary)
+```
+prompt_context = """provide a nickname to this salesforce flow metadata, 
+                            do not describe the flow, tell me only the nickname,
+                            your response must contain maximum of two words, 
+                            don't ask for more options ---"""
+```
+
 
 ### Run the application
 ```
