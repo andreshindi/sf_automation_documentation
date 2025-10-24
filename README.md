@@ -4,7 +4,7 @@
 Before designing a flow, the Salesforce administrator must know which flows are connected to the objects they’re working with, so they can avoid conflicting logic. Extracting Flow metadata and describing the flow is a time consuming activity for admins and devs.
 
 ## Goal
-This script will list all the flow metadata from an org (type, related object, and a short description), retrieve the flows strucutre using SF MetadataAPI and use Ollama (local) to generate the descriptions based on the metadata.
+This script will list all the flow metadata from an org (type, related object, and a short description), retrieve the flows strucutre using SF MetadataAPI and use Ollama (local) to generate the descriptions based on the metadata. A CSV with all the information collected and processed is saved at the end of the process.
 
 ## Instructions
 ### Requirements
@@ -42,7 +42,8 @@ ollama run llama3.1:8b
 ### Set inputs
 Open ./scripts/main.py 
 
-Under main() function
+Look for the main() function:
+
 Change SF query (if necessary)
 ```
  query="""SELECT id, Label, ApiName, TriggerObjectOrEventLabel, TriggerType, ProcessType, Description 
