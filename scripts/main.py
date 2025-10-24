@@ -7,7 +7,6 @@ import shutil ##using to move folders
 import time
 from base64 import b64decode
 from zipfile import ZipFile
-from io import BytesIO
 import base64
 import zipfile
 from ollama import chat
