@@ -2,7 +2,6 @@ from simple_salesforce import Salesforce
 from dotenv import load_dotenv
 import os
 import pandas as pd
-import os
 import shutil ##using to move folders
 import time
 from base64 import b64decode
